@@ -4,9 +4,9 @@
             "name": "Pico",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${env:PICO_SDK_PATH}/**",
-                "${workspaceFolder}/tinyusb/src",
-                "${workspaceFolder}/tinyusb/src/class/hid"
+                "${workspaceFolder}/build/generated/pico_base/**",
+                "${workspaceFolder}/../../.pico-sdk/sdk/2.1.1/**"
+                
             ],
             "defines": [],
             "compilerPath": "${env:PICO_TOOLCHAIN_PATH}/bin/arm-none-eabi-gcc",
