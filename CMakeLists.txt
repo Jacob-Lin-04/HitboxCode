@@ -36,6 +36,7 @@ pico_sdk_init()
 # Add executable
 add_executable(HitboxCode
     HitboxCode.c
+    usb_descriptors.c
 )
 
 # Set program name and version
@@ -44,7 +45,7 @@ pico_set_program_version(HitboxCode "0.1")
 
 # Enable/disable stdio over UART/USB
 pico_enable_stdio_uart(HitboxCode 0)
-pico_enable_stdio_usb(HitboxCode 1)
+pico_enable_stdio_usb(HitboxCode 0)
 
 # Include directories
 target_include_directories(HitboxCode PRIVATE
@@ -54,6 +55,8 @@ target_include_directories(HitboxCode PRIVATE
 # Link libraries
 target_link_libraries(HitboxCode
     pico_stdlib
+    tinyusb_device
+    tinyusb_board
 )
 
 # Add extra outputs

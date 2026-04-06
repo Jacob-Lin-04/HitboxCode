@@ -73,7 +73,7 @@ These may be addressed in later revisions.
 
 ## GPIO Switch Demo
 
-The current firmware is a simple USB serial demo that prints a message whenever a switch connected to `GP14` is pressed.
+The current firmware is a TinyUSB HID keyboard demo. A switch connected to `GP14` sends a real `W` key press to the host while held.
 
 ### Wiring
 
@@ -101,13 +101,14 @@ This produces `build/HitboxCode.uf2`.
 4. Copy `build/HitboxCode.uf2` onto that drive.
 5. The Pico will reboot automatically and start the demo.
 
-### View Terminal Output
+### Test
 
-With USB stdio enabled, the Pico appears as a USB serial device after it boots.
+After flashing, the Pico enumerates as a USB keyboard.
 
-On Windows, open a serial terminal connected to the Pico COM port at any baud rate and watch for:
+To test:
 
-```text
-Switch demo ready on GP14.
-Switch pressed on GP14
-```
+1. Open Notepad or another text box on your PC.
+2. Press and hold the switch wired to `GP14`.
+3. The Pico should type `w` repeatedly while the switch is held, just like holding the `W` key on a keyboard.
+
+This same behavior is what many PC games use for keyboard movement input.

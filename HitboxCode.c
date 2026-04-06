@@ -1,52 +1,104 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include "bsp/board_api.h"
 #include "pico/stdlib.h"
+#include "tusb.h"
 
 #define SWITCH_GPIO 14
 #define DEBOUNCE_MS 20
-#define USB_WAIT_TIMEOUT_MS 8000
-#define HEARTBEAT_MS 1000
 
-int main(void) {
-    stdio_init_all();
+static bool raw_pressed = false;
+static bool debounced_pressed = false;
+static bool report_dirty = true;
+static uint32_t last_bounce_ms = 0;
+static uint32_t last_poll_ms = 0;
 
+static void switch_init(void) {
     gpio_init(SWITCH_GPIO);
     gpio_set_dir(SWITCH_GPIO, GPIO_IN);
     gpio_pull_up(SWITCH_GPIO);
+}
 
-    // Wait a bit for the USB CDC serial monitor to connect so startup prints are visible.
-    absolute_time_t usb_wait_deadline = make_timeout_time_ms(USB_WAIT_TIMEOUT_MS);
-    while (!stdio_usb_connected() && absolute_time_diff_us(get_absolute_time(), usb_wait_deadline) > 0) {
-        sleep_ms(10);
+static bool switch_is_pressed(void) {
+    return gpio_get(SWITCH_GPIO) == 0;
+}
+
+static void send_keyboard_report(bool pressed) {
+    if (!tud_hid_ready()) {
+        return;
     }
 
-    printf("Switch demo ready on GP%d.\n", SWITCH_GPIO);
-    printf("Wire the switch between GP%d and GND.\n", SWITCH_GPIO);
-    printf("Pressing the switch will print a message here.\n");
-    printf("USB serial connected: %s\n", stdio_usb_connected() ? "yes" : "no");
+    if (pressed) {
+        uint8_t keycodes[6] = { HID_KEY_W, 0, 0, 0, 0, 0 };
+        tud_hid_keyboard_report(0, 0, keycodes);
+    } else {
+        tud_hid_keyboard_report(0, 0, NULL);
+    }
 
-    bool last_pressed = false;
-    absolute_time_t next_heartbeat = make_timeout_time_ms(HEARTBEAT_MS);
+    report_dirty = false;
+}
+
+static void hid_task(void) {
+    uint32_t now = board_millis();
+    if ((now - last_poll_ms) < 1) {
+        return;
+    }
+    last_poll_ms = now;
+
+    bool sample = switch_is_pressed();
+    if (sample != raw_pressed) {
+        raw_pressed = sample;
+        last_bounce_ms = now;
+    }
+
+    if ((now - last_bounce_ms) >= DEBOUNCE_MS && debounced_pressed != raw_pressed) {
+        debounced_pressed = raw_pressed;
+        report_dirty = true;
+
+        if (tud_suspended() && debounced_pressed) {
+            tud_remote_wakeup();
+        }
+    }
+
+    if (report_dirty) {
+        send_keyboard_report(debounced_pressed);
+    }
+}
+
+void tud_mount_cb(void) {
+    report_dirty = true;
+}
+
+void tud_resume_cb(void) {
+    report_dirty = true;
+}
+
+uint16_t tud_hid_get_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type,
+                               uint8_t *buffer, uint16_t reqlen) {
+    (void) instance;
+    (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) reqlen;
+    return 0;
+}
+
+void tud_hid_set_report_cb(uint8_t instance, uint8_t report_id, hid_report_type_t report_type,
+                           uint8_t const *buffer, uint16_t bufsize) {
+    (void) instance;
+    (void) report_id;
+    (void) report_type;
+    (void) buffer;
+    (void) bufsize;
+}
+
+int main(void) {
+    board_init();
+    switch_init();
+    tusb_init();
 
     while (true) {
-        bool pressed = gpio_get(SWITCH_GPIO) == 0;
-
-        if (pressed && !last_pressed) {
-            sleep_ms(DEBOUNCE_MS);
-
-            if (gpio_get(SWITCH_GPIO) == 0) {
-                printf("Switch pressed on GP%d\n", SWITCH_GPIO);
-                last_pressed = true;
-            }
-        } else if (!pressed) {
-            last_pressed = false;
-        }
-
-        if (absolute_time_diff_us(get_absolute_time(), next_heartbeat) <= 0) {
-            printf("Waiting for switch on GP%d... current level=%d\n", SWITCH_GPIO, gpio_get(SWITCH_GPIO));
-            next_heartbeat = make_timeout_time_ms(HEARTBEAT_MS);
-        }
-
-        sleep_ms(5);
+        tud_task();
+        hid_task();
     }
 }
