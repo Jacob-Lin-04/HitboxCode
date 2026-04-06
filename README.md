@@ -73,12 +73,15 @@ These may be addressed in later revisions.
 
 ## GPIO Switch Demo
 
-The current firmware is a TinyUSB HID keyboard demo. A switch connected to `GP14` sends a real `W` key press to the host while held.
+The current firmware is a TinyUSB HID keyboard demo. Four switches connected to `GP12` through `GP15` send real `W`, `A`, `S`, and `D` key presses to the host while held.
 
 ### Wiring
 
-- Connect one side of the switch to `GP14`
-- Connect the other side of the switch to any `GND` pin
+- `GP12` -> `W`
+- `GP13` -> `A`
+- `GP14` -> `S`
+- `GP15` -> `D`
+- Connect the other side of each switch to any `GND` pin
 
 The firmware enables the Pico's internal pull-up resistor, so the pin reads HIGH when the switch is open and LOW when pressed.
 
@@ -108,7 +111,7 @@ After flashing, the Pico enumerates as a USB keyboard.
 To test:
 
 1. Open Notepad or another text box on your PC.
-2. Press and hold the switch wired to `GP14`.
-3. The Pico should type `w` repeatedly while the switch is held, just like holding the `W` key on a keyboard.
+2. Press and hold any switch wired to `GP12`, `GP13`, `GP14`, or `GP15`.
+3. The Pico should type `w`, `a`, `s`, or `d` repeatedly while the matching switch is held, just like holding those keys on a keyboard.
 
 This same behavior is what many PC games use for keyboard movement input.
