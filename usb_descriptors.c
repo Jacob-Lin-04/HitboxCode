@@ -8,11 +8,15 @@
 #define CONFIG_TOTAL_LEN (TUD_CONFIG_DESC_LEN + TUD_HID_DESC_LEN)
 #define EPNUM_HID 0x81
 
+// This project exposes a single USB interface: one HID keyboard interface.
 enum {
     ITF_NUM_KEYBOARD = 0,
     ITF_NUM_TOTAL
 };
 
+// USB device descriptor:
+// the host reads this first during enumeration to learn the device identity,
+// USB version, packet size, VID/PID, and which string indices exist.
 static tusb_desc_device_t const desc_device = {
     .bLength = sizeof(tusb_desc_device_t),
     .bDescriptorType = TUSB_DESC_DEVICE,
@@ -30,15 +34,23 @@ static tusb_desc_device_t const desc_device = {
     .bNumConfigurations = 0x01
 };
 
+// HID report descriptor:
+// this describes the binary format of the reports the device will send.
+// Using the TinyUSB keyboard macro tells the host we speak the standard keyboard protocol.
 static uint8_t const desc_hid_report[] = {
     TUD_HID_REPORT_DESC_KEYBOARD()
 };
 
+// USB configuration descriptor:
+// this defines the active USB configuration and lists the interfaces/endpoints
+// inside it. Here we declare one keyboard HID interface with one IN endpoint.
 static uint8_t const desc_configuration[] = {
     TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, TUSB_DESC_CONFIG_ATT_REMOTE_WAKEUP, 100),
     TUD_HID_DESCRIPTOR(ITF_NUM_KEYBOARD, 0, HID_ITF_PROTOCOL_KEYBOARD, sizeof(desc_hid_report), EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 1)
 };
 
+// Human-readable strings presented to the host. Index 0 is always the supported
+// language table; the other indices line up with the values stored in desc_device.
 static char const *string_desc_arr[] = {
     (const char[]) { 0x09, 0x04 },
     "Jacob",
@@ -46,22 +58,29 @@ static char const *string_desc_arr[] = {
     NULL
 };
 
+// Scratch buffer used to build UTF-16 USB string descriptors on demand.
 static uint16_t desc_str[32 + 1];
 
+// TinyUSB callback: returns the top-level USB device descriptor.
 uint8_t const *tud_descriptor_device_cb(void) {
     return (uint8_t const *) &desc_device;
 }
 
+// TinyUSB callback: returns the HID report descriptor for the keyboard interface.
 uint8_t const *tud_hid_descriptor_report_cb(uint8_t instance) {
     (void) instance;
     return desc_hid_report;
 }
 
+// TinyUSB callback: returns the configuration descriptor that describes the
+// interface and endpoint layout of this USB device.
 uint8_t const *tud_descriptor_configuration_cb(uint8_t index) {
     (void) index;
     return desc_configuration;
 }
 
+// TinyUSB callback: converts our normal C strings into USB string descriptor
+// format when the host asks for manufacturer/product/serial text.
 uint16_t const *tud_descriptor_string_cb(uint8_t index, uint16_t langid) {
     (void) langid;
     size_t chr_count;
