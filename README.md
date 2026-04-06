@@ -70,3 +70,44 @@ These may be addressed in later revisions.
 - USB HID validation on PC
 - Mechanical iteration of enclosure
 - Custom PCB design
+
+## GPIO Switch Demo
+
+The current firmware is a simple USB serial demo that prints a message whenever a switch connected to `GP14` is pressed.
+
+### Wiring
+
+- Connect one side of the switch to `GP14`
+- Connect the other side of the switch to any `GND` pin
+
+The firmware enables the Pico's internal pull-up resistor, so the pin reads HIGH when the switch is open and LOW when pressed.
+
+### Build
+
+From the project root:
+
+```powershell
+cmake -B build -S . -DPICO_BOARD=pico
+cmake --build build
+```
+
+This produces `build/HitboxCode.uf2`.
+
+### Flash To Pico
+
+1. Unplug the Pico.
+2. Hold the `BOOTSEL` button while plugging the Pico into USB.
+3. The board will appear as a drive named `RPI-RP2`.
+4. Copy `build/HitboxCode.uf2` onto that drive.
+5. The Pico will reboot automatically and start the demo.
+
+### View Terminal Output
+
+With USB stdio enabled, the Pico appears as a USB serial device after it boots.
+
+On Windows, open a serial terminal connected to the Pico COM port at any baud rate and watch for:
+
+```text
+Switch demo ready on GP14.
+Switch pressed on GP14
+```

@@ -36,7 +36,6 @@ pico_sdk_init()
 # Add executable
 add_executable(HitboxCode
     HitboxCode.c
-    usb_descriptors.c
 )
 
 # Set program name and version
@@ -50,8 +49,6 @@ pico_enable_stdio_usb(HitboxCode 1)
 # Include directories
 target_include_directories(HitboxCode PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/tinyusb/src
-    ${CMAKE_CURRENT_LIST_DIR}/tinyusb/src/class/hid
 )
 
 # Link libraries
