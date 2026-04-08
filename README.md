@@ -71,16 +71,33 @@ These may be addressed in later revisions.
 - Mechanical iteration of enclosure
 - Custom PCB design
 
-## GPIO Switch Demo
+## GPIO Gamepad Demo
 
-The current firmware is a TinyUSB HID keyboard demo. Four switches connected to `GP12` through `GP15` send real `W`, `A`, `S`, and `D` key presses to the host while held.
+The current firmware is a TinyUSB HID gamepad demo for a hitbox-style layout. It enumerates as a generic USB controller and maps the essential digital controls onto Pico GPIO pins.
 
 ### Wiring
 
-- `GP12` -> `W`
-- `GP13` -> `A`
-- `GP14` -> `S`
-- `GP15` -> `D`
+- D-pad:
+- `GP2` -> Up
+- `GP3` -> Down
+- `GP4` -> Left
+- `GP5` -> Right
+- Face buttons:
+- `GP6` -> Square
+- `GP7` -> Cross
+- `GP8` -> Circle
+- `GP9` -> Triangle
+- Shoulder buttons:
+- `GP10` -> L1
+- `GP11` -> R1
+- `GP12` -> L2
+- `GP13` -> R2
+- Center buttons:
+- `GP14` -> Create
+- `GP15` -> Options
+- `GP16` -> L3
+- `GP17` -> R3
+- `GP18` -> PS
 - Connect the other side of each switch to any `GND` pin
 
 The firmware enables the Pico's internal pull-up resistor, so the pin reads HIGH when the switch is open and LOW when pressed.
@@ -106,12 +123,12 @@ This produces `build/HitboxCode.uf2`.
 
 ### Test
 
-After flashing, the Pico enumerates as a USB keyboard.
+After flashing, the Pico enumerates as a USB gamepad.
 
 To test:
 
-1. Open Notepad or another text box on your PC.
-2. Press and hold any switch wired to `GP12`, `GP13`, `GP14`, or `GP15`.
-3. The Pico should type `w`, `a`, `s`, or `d` repeatedly while the matching switch is held, just like holding those keys on a keyboard.
+1. Open Windows Game Controllers (`joy.cpl`) or a gamepad tester.
+2. Press the wired switches one at a time.
+3. The D-pad, face buttons, shoulders, and center buttons should respond as controller inputs.
 
-This same behavior is what many PC games use for keyboard movement input.
+Opposite directions on the same pad or stick are resolved to neutral.
