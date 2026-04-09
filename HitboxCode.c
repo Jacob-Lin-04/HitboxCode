@@ -288,7 +288,7 @@ static void hid_task(void) {
     }
     last_poll_ms = now;
 
-    uint8_t sample = read_input_state();
+    uint32_t sample = read_input_state();
     if (sample != raw_state) {
         raw_state = sample;
         last_bounce_ms = now;
